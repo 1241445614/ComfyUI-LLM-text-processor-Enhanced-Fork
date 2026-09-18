@@ -1,132 +1,135 @@
-# ComfyUI-LLM-text-processor (增强分支)
+<!-- README-I18N:START -->
+**English** | [中文](./README.zh.md)
+<!-- README-I18N:END -->
+# ComfyUI-LLM-text-processor (Enhanced Fork)
 
-基于 [KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor) 的增强版本，专注于 **低显存 / 高内存** 场景的本地 GGUF 模型推理优化，新增多项实用功能与前端交互改进。
+An enhanced version of [KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor), focused on optimizing local GGUF model inference for **low VRAM / high RAM** scenarios, with several new practical features and frontend interaction improvements.
 
-## ✨ 新增功能
+## ✨ New Features
 
-### 🎛️ 性能预设（一键配置）
-节点内置 5 种性能预设，选择后自动填充下方所有相关参数，无需手动逐项调整：
+### 🎛️ Performance Presets (One-Click Configuration)
+The node includes 5 built-in performance presets. Once selected, all related parameters below are filled in automatically, so you don't need to adjust them one by one:
 
-| 预设 | 适用场景 | 关键配置 |
-|------|----------|----------|
-| `balanced` | 均衡模式 | 默认参数，不覆盖用户设置 |
-| `low_vram_high_ram` | MoE 模型，低显存高内存 | 专家层全部卸载至 CPU，KV 缓存 `q8_0` |
-| `dense_27b_low_vram` | **27B 稠密模型，12G 显存推荐** | 所有层上 GPU，自动附加 `ffn_0_45` 卸载 |
-| `hybrid_offload` | MoE 混合卸载 | 部分层 GPU + 专家层 CPU |
-| `extreme_low_vram` | 极低显存（≤4GB） | KV 缓存 `q4_0`，最大程度压缩显存 |
+| Preset | Use Case | Key Configuration |
+|--------|----------|-------------------|
+| `balanced` | Balanced mode | Default parameters, does not override user settings |
+| `low_vram_high_ram` | MoE models, low VRAM & high RAM | All expert layers offloaded to CPU, KV cache `q8_0` |
+| `dense_27b_low_vram` | **27B dense models, recommended for 12GB VRAM** | All layers on GPU, automatically adds `ffn_0_45` offload |
+| `hybrid_offload` | MoE hybrid offload | Some layers on GPU + expert layers on CPU |
+| `extreme_low_vram` | Extremely low VRAM (≤4GB) | KV cache `q4_0`, maximum VRAM compression |
 
-### 📦 FFN 张量卸载（独立选项）
-通过 `ffn_offload` 下拉菜单控制 `--override-tensor`，将指定层的 FFN 张量卸载到 CPU 内存：
+### 📦 FFN Tensor Offloading (Standalone Option)
+Use the `ffn_offload` dropdown to control `--override-tensor` and offload FFN tensors from specified layers to CPU memory:
 
-- `none`：不卸载
-- `ffn_0_15` / `ffn_0_30` / `ffn_0_45` / `ffn_0_60`：卸载 0~N 层 FFN
-- `ffn_0_45_attn`：卸载 0~45 层 FFN + Attention
+- `none`: No offloading
+- `ffn_0_15` / `ffn_0_30` / `ffn_0_45` / `ffn_0_60`: Offload FFN layers 0 to N
+- `ffn_0_45_attn`: Offload FFN + Attention layers 0 to 45
 
-### 🖼️ 链式图片输入（无需手动设置数量）
-- 默认只显示 `image_1` 输入口
-- 连上 `image_1` 后自动出现 `image_2`
-- 连上 `image_2` 后自动出现 `image_3`，以此类推
-- 最多支持 10 个图片/视频帧输入
-- **IMAGE batch 自动展开**：视频抽帧后的 batch 会被自动拆分为多帧送入模型
+### 🖼️ Chained Image Inputs (No Manual Count Setting Needed)
+- Only `image_1` is shown by default
+- After connecting `image_1`, `image_2` appears automatically
+- After connecting `image_2`, `image_3` appears, and so on
+- Supports up to 10 image/video frame inputs
+- **Automatic IMAGE batch expansion**: batches from video frame extraction are automatically split into multiple frames and sent to the model
 
-### 🧠 思考模式合并（`reasoning_effort`）
-将原先的 `reasoning` + `reasoning_effort` 合并为单个下拉菜单：
+### 🧠 Merged Reasoning Mode (`reasoning_effort`)
+The original `reasoning` and `reasoning_effort` options are merged into a single dropdown:
 
-| 选项 | 效果 |
-|------|------|
-| `off` | 完全关闭思考，响应最快 |
-| `low` | 快速推理，输出思考内容 |
-| `medium` | 平衡速度与深度（推荐默认） |
-| `xhigh` | 深度思考，适用于复杂任务 |
+| Option | Effect |
+|--------|--------|
+| `off` | Completely disables reasoning, fastest response |
+| `low` | Fast reasoning, outputs reasoning content |
+| `medium` | Balanced speed and depth (recommended default) |
+| `xhigh` | Deep reasoning, suitable for complex tasks |
 
-### 📝 系统提示词双输入方式
-- `system_prompt`：从预设文件下拉选择
-- `system_prompt_text`：直接在节点文本框输入多行提示词
-- **优先级**：文本框非空时覆盖文件选择
+### 📝 Dual System Prompt Input
+- `system_prompt`: Select from preset files via dropdown
+- `system_prompt_text`: Directly enter multi-line prompts in the node text box
+- **Priority**: When the text box is non-empty, it overrides the file selection
 
-### 🔧 其他改进
-- **KV 缓存量化**：支持 `f16` / `q8_0` / `q4_0` 等类型，`q8_0` 在几乎无损下节省约 47% 显存
-- **内存映射控制**：`no_mmap` 可禁用内存映射，配合大内存预加载模型
-- **KV 缓存 RAM 上限**：`cache_ram` 限制主机内存中 KV 缓存大小
-- **输出分离**：`RESPONSE` / `REASONING` / `PERF` 三个端口独立输出
-- **错误解析**：更友好的 llama.cpp 错误信息提取
+### 🔧 Other Improvements
+- **KV Cache Quantization**: Supports `f16` / `q8_0` / `q4_0` and more. `q8_0` saves about 47% VRAM with almost no quality loss
+- **Memory Mapping Control**: `no_mmap` can disable memory mapping and preload models with large RAM
+- **KV Cache RAM Limit**: `cache_ram` limits the KV cache size in host memory
+- **Separate Outputs**: `RESPONSE` / `REASONING` / `PERF` are output independently
+- **Error Parsing**: More user-friendly extraction of llama.cpp error messages
 
-## 📦 安装
+## 📦 Installation
 
-1. 将本仓库克隆到 ComfyUI 的 `custom_nodes` 目录：
+1. Clone this repository into ComfyUI's `custom_nodes` directory:
    ```bash
    cd ComfyUI/custom_nodes
-   git clone https://github.com/你的用户名/ComfyUI-LLM-text-processor.git
+   git clone https://github.com/your-username/ComfyUI-LLM-text-processor.git
    ```
 
-2. 安装依赖（如果尚未安装）：
+2. Install dependencies (if not already installed):
    ```bash
    python -m pip install -r requirements.txt
    ```
 
-3. 重启 ComfyUI，在节点菜单中找到 `LLM Text Processor`。
+3. Restart ComfyUI and find `LLM Text Processor` in the node menu.
 
-## 🚀 快速上手（12GB 显存 + 64GB 内存）
+## 🚀 Quick Start (12GB VRAM + 64GB RAM)
 
-1. 将 `performance_preset` 设为 **`dense_27b_low_vram`**
-2. 确认 `ffn_offload` 自动变为 `ffn_0_45`
-3. 根据任务调整 `ctx_size`（建议 32768 起步）
-4. 连接图片输入：连上 `image_1` 后会自动出现 `image_2`
-5. 在 `prompt` 中输入提示词，运行即可
+1. Set `performance_preset` to **`dense_27b_low_vram`**
+2. Confirm that `ffn_offload` automatically becomes `ffn_0_45`
+3. Adjust `ctx_size` as needed (recommended starting point: 32768)
+4. Connect image inputs: after connecting `image_1`, `image_2` appears automatically
+5. Enter your prompt in `prompt` and run
 
-## 📋 参数说明
+## 📋 Parameter Reference
 
-### 核心参数
-| 参数 | 说明 |
-|------|------|
-| `model` | GGUF 模型文件（从 `ComfyUI/models/LLM` 加载） |
-| `mmproj` | 视觉投影文件，连接图片时必选 |
-| `system_prompt` | 系统提示词预设文件 |
-| `system_prompt_text` | 直接输入系统提示词（优先于文件） |
-| `prompt` | 用户提示词 |
-| `performance_preset` | 性能预设（自动填充下方参数） |
-| `ffn_offload` | FFN 张量卸载层范围 |
-| `ctx_size` | 上下文窗口大小 |
-| `max_tokens` | 最大生成 token 数 |
-| `reasoning_effort` | 思考模式与强度 |
+### Core Parameters
+| Parameter | Description |
+|-----------|-------------|
+| `model` | GGUF model file (loaded from `ComfyUI/models/LLM`) |
+| `mmproj` | Vision projector file, required when connecting images |
+| `system_prompt` | System prompt preset file |
+| `system_prompt_text` | Directly enter system prompt (overrides file) |
+| `prompt` | User prompt |
+| `performance_preset` | Performance preset (auto-fills parameters below) |
+| `ffn_offload` | FFN tensor offload layer range |
+| `ctx_size` | Context window size |
+| `max_tokens` | Maximum number of tokens to generate |
+| `reasoning_effort` | Reasoning mode and intensity |
 
-### 高级参数（Advanced）
-| 参数 | 说明 |
-|------|------|
-| `memory_mode` | 显存/内存放置策略 |
-| `n_gpu_layers` | GPU 层数 |
-| `n_cpu_moe_layers` | CPU MoE 层数 |
-| `cache_type_k/v` | KV 缓存量化类型 |
-| `no_mmap` | 禁用内存映射 |
-| `cache_ram` | KV 缓存 RAM 上限（MiB） |
+### Advanced Parameters
+| Parameter | Description |
+|-----------|-------------|
+| `memory_mode` | VRAM/RAM placement strategy |
+| `n_gpu_layers` | Number of GPU layers |
+| `n_cpu_moe_layers` | Number of CPU MoE layers |
+| `cache_type_k/v` | KV cache quantization type |
+| `no_mmap` | Disable memory mapping |
+| `cache_ram` | KV cache RAM limit (MiB) |
 
-## 🧪 使用 MTP 加速（可选）
+## 🧪 Using MTP Acceleration (Optional)
 
-如果你的模型文件名包含 `MTP` 标识（如 `Qwen3.8-27B-...-MTP.gguf`），可以在 `extra_args` 中添加以下参数启用多 Token 预测加速：
+If your model filename contains the `MTP` identifier (e.g. `Qwen3.8-27B-...-MTP.gguf`), you can add the following parameters to `extra_args` to enable Multi-Token Prediction acceleration:
 
 ```
 --spec-type draft-mtp --spec-draft-n-max 3
 ```
 
-## 📁 文件结构
+## 📁 File Structure
 
 ```
 ComfyUI-LLM-text-processor/
 ├── __init__.py
-├── nodes.py              # 节点定义与参数收集
-├── llama_cli.py          # 命令行构建与输出解析
-├── folder_registry.py    # 模型/提示词文件扫描
-├── llama_binary.py       # llama.cpp 二进制管理
+├── nodes.py              # Node definition and parameter collection
+├── llama_cli.py          # Command construction and output parsing
+├── folder_registry.py    # Model/prompt file scanning
+├── llama_binary.py       # llama.cpp binary management
 ├── web/
-│   └── llm_text_processor.js  # 前端交互（链式输入、预设联动）
+│   └── llm_text_processor.js  # Frontend interaction (chained inputs, preset linkage)
 └── README.md
 ```
 
-## 🙏 致谢
+## 🙏 Acknowledgements
 
-- 原项目：[KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor)
-- [llama.cpp](https://github.com/ggml-org/llama.cpp) 提供底层推理支持
+- Original project: [KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor)
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) provides the underlying inference support
 
-## 📄 许可证
+## 📄 License
 
-遵循原项目许可证。请查阅原仓库获取详细信息。
+Follows the original project's license. Please refer to the original repository for details.
