@@ -33,8 +33,8 @@
 - 最多支持 10 个图片/视频帧输入
 - **IMAGE batch 自动展开**：视频抽帧后的 batch 会被自动拆分为多帧送入模型
 
-### 🧠 思考模式合并（`reasoning_effort`）
-将原先的 `reasoning` + `reasoning_effort` 合并为单个下拉菜单：
+### 🧠 思考模式改进（`reasoning_effort`）
+将原先的 `reasoning` 改为 `reasoning_effort` 并合并为单个下拉菜单：
 
 | 选项 | 效果 |
 |------|------|
@@ -52,8 +52,6 @@
 - **KV 缓存量化**：支持 `f16` / `q8_0` / `q4_0` 等类型，`q8_0` 在几乎无损下节省约 47% 显存
 - **内存映射控制**：`no_mmap` 可禁用内存映射，配合大内存预加载模型
 - **KV 缓存 RAM 上限**：`cache_ram` 限制主机内存中 KV 缓存大小
-- **输出分离**：`RESPONSE` / `REASONING` / `PERF` 三个端口独立输出
-- **错误解析**：更友好的 llama.cpp 错误信息提取
 
 ## 📦 安装
 
@@ -75,8 +73,7 @@
 1. 将 `performance_preset` 设为 **`dense_27b_low_vram`**
 2. 确认 `ffn_offload` 自动变为 `ffn_0_45`
 3. 根据任务调整 `ctx_size`（建议 32768 起步）
-4. 连接图片输入：连上 `image_1` 后会自动出现 `image_2`
-5. 在 `prompt` 中输入提示词，运行即可
+4. 在 `prompt` 中输入提示词，运行即可
 
 ## 📋 参数说明
 
