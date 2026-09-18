@@ -32,8 +32,8 @@ Use the `ffn_offload` dropdown to control `--override-tensor` and offload FFN te
 - Supports up to 10 image/video frame inputs
 - **Automatic IMAGE batch expansion**: batches from video frame extraction are automatically split into multiple frames and sent to the model
 
-### 🧠 Merged Reasoning Mode (`reasoning_effort`)
-The original `reasoning` and `reasoning_effort` options are merged into a single dropdown:
+### 🧠 Better reasoning mode (`reasoning_effort`)
+The old `reasoning` has been replaced with the `reasoning_effort` option and combined into a dropdown:
 
 | Option | Effect |
 |--------|--------|
@@ -51,8 +51,6 @@ The original `reasoning` and `reasoning_effort` options are merged into a single
 - **KV Cache Quantization**: Supports `f16` / `q8_0` / `q4_0` and more. `q8_0` saves about 47% VRAM with almost no quality loss
 - **Memory Mapping Control**: `no_mmap` can disable memory mapping and preload models with large RAM
 - **KV Cache RAM Limit**: `cache_ram` limits the KV cache size in host memory
-- **Separate Outputs**: `RESPONSE` / `REASONING` / `PERF` are output independently
-- **Error Parsing**: More user-friendly extraction of llama.cpp error messages
 
 ## 📦 Installation
 
@@ -74,8 +72,6 @@ The original `reasoning` and `reasoning_effort` options are merged into a single
 1. Set `performance_preset` to **`dense_27b_low_vram`**
 2. Confirm that `ffn_offload` automatically becomes `ffn_0_45`
 3. Adjust `ctx_size` as needed (recommended starting point: 32768)
-4. Connect image inputs: after connecting `image_1`, `image_2` appears automatically
-5. Enter your prompt in `prompt` and run
 
 ## 📋 Parameter Reference
 
