@@ -9,7 +9,7 @@ An enhanced version of [KingManiya/ComfyUI-LLM-text-processor](https://github.co
 26.9.22:
 1. MTP (Multi-Token Prediction) Support
 2. Updated llama.cpp Version
-3. 3. New Lite Node
+3. New Lite Node
 
 ## ✨ New Features
 
