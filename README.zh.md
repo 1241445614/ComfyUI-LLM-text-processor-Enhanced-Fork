@@ -6,6 +6,11 @@
 
 基于 [KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor) 的增强版本，专注于 **低显存 / 高内存** 场景的本地 GGUF 模型推理优化，新增多项实用功能与前端交互改进。
 
+# 更新内容 ：
+26.9.22：1. MTP（多 Token 预测）支持
+         2. 更新 llama.cpp 版本
+         3. 新增 Lite 节点
+
 ## ✨ 新增功能
 
 ### 🎛️ 性能预设（一键配置）
