@@ -5,6 +5,12 @@
 
 An enhanced version of [KingManiya/ComfyUI-LLM-text-processor](https://github.com/KingManiya/ComfyUI-LLM-text-processor), focused on optimizing local GGUF model inference for **low VRAM / high RAM** scenarios, with several new practical features and frontend interaction improvements.
 
+# Changelog:
+26.9.22:
+1. MTP (Multi-Token Prediction) Support
+2. Updated llama.cpp Version
+3. 3. New Lite Node
+
 ## ✨ New Features
 
 ### 🎛️ Performance Presets (One-Click Configuration)
