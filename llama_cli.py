@@ -26,7 +26,6 @@ LLAMA_RANDOM_SEED = -1
 LLAMA_SEED_MODULUS = 2**32
 MAX_LLAMA_SEED = LLAMA_SEED_MODULUS - 1
 
-# --override-tensor 预设：将指定层的前馈网络张量卸载到 CPU 内存
 FFN_OFFLOAD_PATTERNS = {
     "ffn_0_15": r"blk\.([0-9]|1[0-5])\.ffn_.*=CPU",
     "ffn_0_30": r"blk\.([0-9]|[1-2][0-9]|30)\.ffn_.*=CPU",
@@ -95,7 +94,6 @@ def _apply_preset(
     cache_ram: int,
     ffn_offload: str,
 ) -> tuple:
-    """根据性能预设覆盖相关参数。"""
     if performance_preset == "low_vram_high_ram":
         memory_mode = "cpu_moe_layers"
         n_cpu_moe_layers = 999
@@ -144,6 +142,7 @@ def _apply_preset(
 def build_command(
     model_path: Path,
     mmproj_path: Path | None,
+    mtp_draft_path: Path | None,
     system_prompt_path: Path | None,
     system_prompt_text: str,
     images: list,
@@ -156,6 +155,8 @@ def build_command(
     ctx_size: int,
     performance_preset: str,
     ffn_offload: str,
+    mtp_mode: str,
+    mtp_n_max: int,
     memory_mode: str,
     n_gpu_layers: int,
     n_cpu_moe_layers: int,
@@ -181,7 +182,6 @@ def build_command(
     prompt_path = _write_prompt_file(prompt)
     cleanup_paths.append(prompt_path)
 
-    # 决定 system prompt 来源：文本框 > 预设文件
     system_prompt_file: Path | None = None
     if system_prompt_text and system_prompt_text.strip():
         system_prompt_file = _write_temp_text_file(
@@ -234,6 +234,7 @@ def build_command(
         "--single-turn",
     ]
 
+    # 思考模式
     if reasoning_effort == "off":
         command.extend(["--reasoning", "off"])
         command.extend(
@@ -248,24 +249,38 @@ def build_command(
             ]
         )
 
+    # MTP 加速
+    if mtp_mode == "on":
+        command.extend(["--spec-type", "draft-mtp"])
+        command.extend(["--spec-draft-n-max", str(mtp_n_max)])
+        # 只有指定了外部草稿头时才传 --spec-draft-model
+        # 否则 llama.cpp 会自动使用主模型内嵌的 MTP 头
+        if mtp_draft_path is not None:
+            command.extend(["--spec-draft-model", str(mtp_draft_path)])
+
+    # KV 缓存量化
     command.extend(["--cache-type-k", cache_type_k])
     command.extend(["--cache-type-v", cache_type_v])
 
+    # 内存映射控制（新版 llama.cpp 使用 --load-mode 代替 --no-mmap）
     if no_mmap:
-        command.append("--no-mmap")
+        command.extend(["--load-mode", "none"])
     if cache_ram > 0:
         command.extend(["--cache-ram", str(cache_ram)])
 
+    # 显存 / 内存放置策略
     if memory_mode in {"gpu_layers", "gpu_and_cpu_moe_layers"}:
         command.extend(["-ngl", str(n_gpu_layers)])
     if memory_mode in {"cpu_moe_layers", "gpu_and_cpu_moe_layers"}:
         command.extend(["--n-cpu-moe", str(n_cpu_moe_layers)])
 
+    # FFN 张量卸载
     if ffn_offload and ffn_offload != "none":
         pattern = FFN_OFFLOAD_PATTERNS.get(ffn_offload)
         if pattern:
             command.extend(["--override-tensor", pattern])
 
+    # Flash Attention
     command.extend(["--flash-attn", "on"])
 
     if system_prompt_file is not None:
