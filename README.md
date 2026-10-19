@@ -63,7 +63,7 @@ The old `reasoning` has been replaced with the `reasoning_effort` option and com
 1. Clone this repository into ComfyUI's `custom_nodes` directory:
    ```bash
    cd ComfyUI/custom_nodes
-   git clone https://github.com/your-username/ComfyUI-LLM-text-processor.git
+   git clone https://github.com/1241445614/ComfyUI-LLM-text-processor-Enhanced-Fork.git
    ```
 
 2. Install dependencies (if not already installed):
